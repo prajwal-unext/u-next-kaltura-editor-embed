@@ -10,3 +10,5 @@ This Project is created to replicate the error caused by the KEA which trying to
 4. Run the project using `npm start`
 5. Go to Quiz Tab
 6. Click on Preview
+
+The Player will get stuck in its loading state.
