@@ -36,19 +36,19 @@ export class AppComponent {
     const entryId = config.entryId;
     const referenceId = config.referenceId; //3rd party system ID to match with the new clip that will be created
     const userId = config.userId;
-    const uiConfId = config.uiConfId;
+    const uiConfId = config.uiConfId as any;
     const userDisplayName = config.userDisplayName;
 
     this.createSession().then((result: any) => {
 
       this.client?.setDefaultRequestOptions({ ks: result });
       // use the ADMIN KS to retrieve the ID of the editor app special user role (in order to update the referenceId field):
-      this.renderEditorApp(config, client, config.serviceUrl, entryId, referenceId, config.uiConfId, userDisplayName, apiSecret, userId, config.partnerId, expiry);
+      this.renderEditorApp(config, client, config.serviceUrl, entryId, referenceId, uiConfId, userDisplayName, apiSecret, userId, partnerId, expiry);
     });
   }
 
-  renderEditorApp(res: any, client: any, serviceUrl: any, entryId: any, referenceId: string, uiConfId: any, userDisplayName: string, apiSecret: string, userId: any, partnerId: any, expiry: number) {
-    const privileges = "edit:" + entryId + ",sview:" + entryId + ",setrole:" + 'PLAYBACK_BASE_ROLE';
+  renderEditorApp(res: any, client: any, serviceUrl: any, entryId: any, referenceId: string, uiConfId: number, userDisplayName: string, apiSecret: string, userId: string, partnerId: number, expiry: number) {
+    const privileges = "*";
     // Get a USER Kaltura Session -
     this.createSession(privileges)
       .then((result: any) => {
@@ -86,76 +86,44 @@ export class AppComponent {
       return {
         'messageType': 'kea-config',
         'data': {
-          /* URL of the Kaltura Server to use */
           'service_url': serviceUrl,
-          /* The Kaltura Account ID the entry we will edit belongs to */
           'partner_id': partnerId,
-          /* The ID the entry we will edit */
           'entry_id': entryId,
-          /* The Kaltura Session to use when editing this entry */
           'ks': ks,
-          /* The Kaltura Session to use when previewing the edited entry */
           'preview_ks': ks,
-          /* id of the player (Universal Studio v2 version player) uiconf to be used in the editor */
           'player_uiconf_id': uiConfId,
-          /* id of the player (Universal Studio v2 version player) uiconf to be used when previewing */
           'preview_player_uiconf_id': uiConfId,
-          /* Boolean; pass true if a KS must be appended to the thumbnails url for access control profile requirements */
           'load_thumbnail_with_ks': true,
-          /* Show a nicer user name (instead of user ID): */
           'user_dispaly_name': userDisplayName,
-          /* language - used by priority:
-          * 1. Custom locale (locale_url)
-          *    full url of a json file with translations
-          * 2. Locale code (language_code, one of:
-          *    de, en, es, fr, ja, nl, pt-br, ru, zh-Hans, zh-Hant
-          * 3. English default locale (fallback). */
           'language_code': 'en',
-          //'locale_url': 'URL_OF_CUSTOM_LANGUAGE_FILE', see public/locale_en.json as example
-          /* URL to be used for "Go to User Manual" in the editor help component */
+          'locale_url': '//' + window.location.host + '/assets/i18n/kaltura-video-editor_en.json',
           'help_link': 'https://knowledge.kaltura.com/node/1912',
-          /* the initial tab to load the editor app on (editor, quiz, advertisements or hotspots) */
           'tab': 'editor',
-          /* tabs to show in navigation */
           'tabs': {
             'edit': {
-              name: 'edit',
+              name: 'Video',
               permissions: ['clip', 'trim'],
               userPermissions: ['clip', 'trim'],
-              showOnlyExpandedView: true,
-              //preActivateMessage: 'optional: message to show before activating the tab',
-              //preSaveMessage: 'optional: message to show before trimming (Save)',
-              //preSaveAsMessage: 'optional: message to show before clipping (Save As)',
-              showSaveButton: false,
+              showOnlyExpandedView: false,
+              showSaveButton: true,
               showSaveAsButton: false
             },
             'quiz': {
-              name: 'quiz',
-              permissions: ['quiz', 'questions-v2', 'questions-v3'],
+              name: 'Quiz',
+              permissions: ['quiz', 'questions-v2', 'questions-v3', "enable-retake", "preventSeek"],
               userPermissions: ['quiz']
             },
-            'advertisements': {
-              name: 'advertisements',
-              permissions: ['CUEPOINT_MANAGE', 'FEATURE_DISABLE_KMC_KDP_ALERTS'],
-              showSaveButton: false
-            },
             'hotspots': {
-              name: 'hotspots',
-              showSaveButton: false
+              name: 'Hotspot',
+              showSaveButton: true
             }
           },
-          /* URL of an additional css file to load */
-          //'css_url': 'YOUR_ADDITIONAL_CSS_URL',
-          /* URL to redirect to when the user wishes to leave the editor */
-          //'exit_link': "URL TO NAVIGATE TO WHEN EXITING THE APP.",
-          /* Should the editor hide the navigation bar (the sidebar holding the tabs icons)? */
+          'css_url': '//' + window.location.host + '/assets/css/editor.css',
           'hide_navigation_bar': false,
-          /* Should the editor hide the "go to media" button after quiz creation? */
-          'hide_quiz_goto_media_button': false,
-          /* When creating a new quiz, should the editor skip "start" screen and create the new quiz entry automatically upon entering the tab? */
+          'hide_quiz_goto_media_button': true,
           'skip_quiz_start_page': false
         }
-      };
+      }
     }
 
     // Initialize the kaltura editor app communication: 
@@ -335,7 +303,7 @@ export class AppComponent {
         console.log("Hosting app should redirect to: " + postMessageData.data);
       }
 
-    });//
+    });
   }
 
   private async getConfig() {
@@ -362,7 +330,7 @@ export class AppComponent {
       userId,
       secret,
       type,
-      partnerId: Number(config.partnerId),
+      partnerId: config.partnerId,
       privileges: inputPrivileges ? inputPrivileges : '*', // might need to check this
       expiry,
     };
